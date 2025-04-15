@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
+import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   palette: {
-    mode: "light",
+    mode: 'light',
   },
 });
 

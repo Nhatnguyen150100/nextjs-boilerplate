@@ -1,4 +1,4 @@
-import { Container, Typography, Button } from '@mui/material';
+import { Button, Container, Typography } from '@mui/material';
 import Link from 'next/link';
 
 const ErrorPage = ({ error }: { error: Error }) => {

@@ -1,6 +1,6 @@
+import { DEFINE_KEY_TOKEN } from '@/constants/key-store';
 import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
-import { DEFINE_KEY_TOKEN } from '@/constants/key-store';
 export const cookiesStore = Cookies;
 
 let isRefreshing = false;

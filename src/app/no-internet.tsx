@@ -1,7 +1,7 @@
-import React from 'react';
-import { Container, Typography, Button } from '@mui/material';
-import WifiOffIcon from '@mui/icons-material/WifiOff';
 import HomeIcon from '@mui/icons-material/Home';
+import WifiOffIcon from '@mui/icons-material/WifiOff';
+import { Button, Container, Typography } from '@mui/material';
+import React from 'react';
 
 const NoInternet = () => {
   return (
