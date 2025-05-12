@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
+import '@/styles/global.css';
+import '@/styles/reset.css';
+import { ShaCnProvider } from '@/providers/ShacnProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -20,7 +22,7 @@ export const metadata: Metadata = {
   description: 'Next.js Boilerplate with MUI',
   openGraph: {
     type: 'website',
-    locale: 'vi_VN',
+    locale: 'en',
     url: 'https://your-site.com',
     siteName: 'My App',
   },
@@ -36,11 +38,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ShaCnProvider
+          attribute={'class'}
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ShaCnProvider>
       </body>
     </html>
   );

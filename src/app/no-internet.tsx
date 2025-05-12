@@ -1,3 +1,4 @@
+'use client';
 import HomeIcon from '@mui/icons-material/Home';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 import { Button, Container, Typography } from '@mui/material';
