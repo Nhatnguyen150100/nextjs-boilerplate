@@ -20,5 +20,10 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+node_modules
+.next
+.dockerignore
+Dockerfile
+*.log
 LICENSE
 README.md
