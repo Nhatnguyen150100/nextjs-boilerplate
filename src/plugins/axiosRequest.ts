@@ -1,13 +1,18 @@
-import { DEFINE_KEY_TOKEN } from '@/constants/key-store';
+import { DEFINE_ALL_ROUTERS, DEFINE_KEY_TOKEN } from '@/constants';
 import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 export const cookiesStore = Cookies;
+import { showToast } from '@/lib';
+import onRemoveAllToken from '@/utils/functions/on-remove-token';
+import { getErrorMessage } from '@/utils/helpers/getErrorMessage';
+import { StatusCodes } from 'http-status-codes';
+import { signOut } from 'next-auth/react';
 
 let isRefreshing = false;
 let pendingRequests: Array<any> = [];
 
-const API_URL: string | undefined = process.env.NEXT_PUBLIC_BASE_URL;
-const API_PREFIX = '/api';
+const API_URL: string = process.env.NEXT_PUBLIC_BASE_URL ?? '';
+const API_PREFIX: string = process.env.NEXT_PUBLIC_API_PREFIX ?? '';
 
 const axiosRequest = axios.create({
   baseURL: API_URL + API_PREFIX,
@@ -16,12 +21,6 @@ const axiosRequest = axios.create({
 
 const buildBearerToken = (token: string) => {
   return `Bearer ${token}`;
-};
-
-const onRemoveAllToken = () => {
-  cookiesStore.remove(DEFINE_KEY_TOKEN.accessToken);
-  cookiesStore.remove(DEFINE_KEY_TOKEN.refreshToken);
-  cookiesStore.remove(DEFINE_KEY_TOKEN.expireTime);
 };
 
 axiosRequest.defaults.headers.put['Content-Type'] = 'application/json';
@@ -37,7 +36,10 @@ const getNewAccessToken = async () => {
       refresh_token: refreshToken,
     });
 
-    if (response.status === 401 || response.status === 404) {
+    if (
+      response.status === StatusCodes.UNAUTHORIZED ||
+      response.status === StatusCodes.NOT_FOUND
+    ) {
       throw new Error('No refresh token available');
     }
 
@@ -56,14 +58,32 @@ const onFulFillResponse = (
 };
 
 const onRejectResponse = async (error: any) => {
-  if (error.code === 'ERR_NETWORK') {
-    if (window.location.pathname !== '/no-internet')
-      window.location.replace('/no-internet');
+  const showError = () => {
+    if (typeof window !== 'undefined') {
+      const errorMessage = getErrorMessage(error);
+      showToast.error(errorMessage);
+    }
+  };
+
+  const isNetworkError = error.code === 'ERR_NETWORK';
+  const status = error.response?.status;
+
+  if (!error.response) {
+    showError();
     return Promise.reject(error);
   }
-  const { data, status } = error.response;
 
-  if (status === 401) {
+  if (isNetworkError) {
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname !== DEFINE_ALL_ROUTERS.NO_INTERNET) {
+        window.location.replace(DEFINE_ALL_ROUTERS.NO_INTERNET);
+      }
+    }
+    showError();
+    return Promise.reject(error);
+  }
+
+  if (status === StatusCodes.UNAUTHORIZED) {
     const retryOriginalRequest = new Promise((resolve) => {
       pendingRequests.push((newAccessToken: string) => {
         const newConfig = {
@@ -83,7 +103,9 @@ const onRejectResponse = async (error: any) => {
         const response = await getNewAccessToken();
         if (!response) {
           onRemoveAllToken();
-          return await Promise.reject(error);
+          signOut();
+          showError();
+          return Promise.reject(error);
         }
 
         const { newAccessToken, newRefreshToken } = response;
@@ -92,11 +114,12 @@ const onRejectResponse = async (error: any) => {
         axiosRequest.defaults.headers.common['Authorization'] =
           buildBearerToken(newAccessToken);
 
-        pendingRequests.forEach((callback) => callback(newAccessToken));
-      } catch (_error: any) {
+        pendingRequests.forEach((cb) => cb(newAccessToken));
+      } catch (refreshError: any) {
         onRemoveAllToken();
-        window.location.replace('/login');
-        return await Promise.reject(_error);
+        signOut();
+        showToast.error(getErrorMessage(refreshError));
+        return Promise.reject(refreshError);
       } finally {
         pendingRequests = [];
         isRefreshing = false;
@@ -106,12 +129,12 @@ const onRejectResponse = async (error: any) => {
     return retryOriginalRequest;
   }
 
-  if (!error.response || error.response.status >= 500) {
+  if (status >= StatusCodes.INTERNAL_SERVER_ERROR) {
+    showError();
     return Promise.reject(error);
   }
 
-  console.log('🚀 ~ onRejectResponse ~ data:', data);
-
+  showError();
   return Promise.reject(error);
 };
 

@@ -1,34 +1,47 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import '@/styles/global.css';
-import '@/styles/reset.css';
-import { ShaCnProvider } from '@/providers/ShacnProvider';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { NetworkGuard } from '@/guards/NetworkGuard';
+import { AppProviders } from '@/providers/AppProvider';
+import { Toaster } from 'sonner';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const interSans = Inter({
   subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  adjustFontFallback: false,
+  preload: true,
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
 });
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | My App',
-    default: 'My App',
+    template: '%s',
+    default: 'HVL',
   },
-  description: 'Next.js Boilerplate with MUI',
+  description: 'Next.js Boilerplate with Shadcn',
   openGraph: {
     type: 'website',
-    locale: 'en',
+    locale: 'vi_VN',
     url: 'https://your-site.com',
-    siteName: 'My App',
+    siteName: 'My app',
   },
   robots: {
     index: true,
     follow: true,
+  },
+  keywords: ['HVL'],
+  authors: [
+    {
+      name: 'My app',
+      url: 'https://myapp.com',
+    },
+  ],
+  creator: 'My app',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
   },
 };
 
@@ -38,18 +51,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${interSans.variable} antialiased bg-background-primary`}
       >
-        <ShaCnProvider
-          attribute={'class'}
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ShaCnProvider>
+        <AppProviders>
+          <NetworkGuard>{children}</NetworkGuard>
+        </AppProviders>
+        <Toaster position="top-center" closeButton richColors />
       </body>
     </html>
   );
